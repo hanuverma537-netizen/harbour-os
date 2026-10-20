@@ -65,12 +65,12 @@ char read_key() {
                 case 0x2C: return 'z';
                 case 0x39: return ' ';
                 case 0x1C: return '\n';
+                case 0x0E: return '\b';
                 default:   continue;
             }
         }
     }
 }
-
 
 extern "C" void kernel_main() {
     clear_screen();
@@ -79,17 +79,70 @@ extern "C" void kernel_main() {
     print("\nA tiny OS built from scratch.");
     print("\nConsole initialized successfully.");
 
+    print("\n\nHarbourOS shell");
+    print("\nType help to see available commands.");
+    print("\n> ");
+
+    char command[64];
+    int length = 0;
+    command[0] = '\0';
+
+    
     while (true) {
         char key = read_key();
 
-        if (key == '\n') {
+        if (key == '\b') {
+            if (length > 0) {
+                length--;
+                command[length] = '\0';
+
+                if (cursor_pos > 0) {
+                    cursor_pos--;
+                    VGA_MEMORY[cursor_pos] =
+                        (WHITE_ON_BLACK << 8) | ' ';
+                }
+            }
+        } else if (key == '\n') {
             print("\n");
-        } else {
+
+            if (length == 0) {
+                // Ignore empty commands
+            } else if (
+                command[0] == 'h' &&
+                command[1] == 'e' &&
+                command[2] == 'l' &&
+                command[3] == 'p' &&
+                command[4] == '\0'
+            ) {
+                print("Commands: help, about");
+            } else if (
+                command[0] == 'a' &&
+                command[1] == 'b' &&
+                command[2] == 'o' &&
+                command[3] == 'u' &&
+                command[4] == 't' &&
+                command[5] == '\0'
+            ) {
+                print("HarbourOS: a tiny operating system built from scratch.");
+            } else {
+                print("Unknown command.");
+            }
+
+            print("\n> ");
+
+            length = 0;
+            command[0] = '\0';
+        } else if (length < 63) {
             char text[2] = {key, '\0'};
             print(text);
+
+            command[length] = key;
+            length++;
+            command[length] = '\0';
         }
     }
 }
+
 
 void clear_screen() {
     for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
