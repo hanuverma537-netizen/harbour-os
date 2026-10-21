@@ -11,7 +11,6 @@ int cursor_pos = 0;
 void clear_screen();
 void print(const char* message);
 
-
 unsigned char inb(unsigned short port) {
     unsigned char result;
 
@@ -26,16 +25,14 @@ unsigned char inb(unsigned short port) {
 
 char read_key() {
     while (true) {
-        // Wait until the keyboard has data
         if (inb(0x64) & 1) {
             unsigned char scancode = inb(0x60);
 
-            // Ignore key releases
+            // Ignore key releases.
             if (scancode & 0x80) {
                 continue;
             }
 
-            // Convert common keyboard scancodes to characters
             switch (scancode) {
                 case 0x1E: return 'a';
                 case 0x30: return 'b';
@@ -87,7 +84,6 @@ extern "C" void kernel_main() {
     int length = 0;
     command[0] = '\0';
 
-    
     while (true) {
         char key = read_key();
 
@@ -106,7 +102,7 @@ extern "C" void kernel_main() {
             print("\n");
 
             if (length == 0) {
-                // Ignore empty commands
+                // Ignore empty commands.
             } else if (
                 command[0] == 'h' &&
                 command[1] == 'e' &&
@@ -114,7 +110,7 @@ extern "C" void kernel_main() {
                 command[3] == 'p' &&
                 command[4] == '\0'
             ) {
-                print("Commands: help, about");
+                print("Commands: help, about, clear");
             } else if (
                 command[0] == 'a' &&
                 command[1] == 'b' &&
@@ -124,6 +120,17 @@ extern "C" void kernel_main() {
                 command[5] == '\0'
             ) {
                 print("HarbourOS: a tiny operating system built from scratch.");
+            } else if (
+                command[0] == 'c' &&
+                command[1] == 'l' &&
+                command[2] == 'e' &&
+                command[3] == 'a' &&
+                command[4] == 'r' &&
+                command[5] == '\0'
+            ) {
+                clear_screen();
+                print("HarbourOS shell");
+                print("\nType help to see available commands.");
             } else {
                 print("Unknown command.");
             }
@@ -142,7 +149,6 @@ extern "C" void kernel_main() {
         }
     }
 }
-
 
 void clear_screen() {
     for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
