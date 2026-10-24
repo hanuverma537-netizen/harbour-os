@@ -1,0 +1,6 @@
+# Build outputs
+/build/*
+!/build/.gitkeep
+
+# Generated kernel binary
+/iso/boot/harbouros.bin

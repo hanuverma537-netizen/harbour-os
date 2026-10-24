@@ -10,6 +10,7 @@ int cursor_pos = 0;
 
 void clear_screen();
 void print(const char* message);
+void scroll_screen();
 
 unsigned char inb(unsigned short port) {
     unsigned char result;
@@ -110,7 +111,7 @@ extern "C" void kernel_main() {
                 command[3] == 'p' &&
                 command[4] == '\0'
             ) {
-                print("Commands: help, about, clear");
+                print("Commands: help, about, version, clear");
             } else if (
                 command[0] == 'a' &&
                 command[1] == 'b' &&
@@ -120,6 +121,18 @@ extern "C" void kernel_main() {
                 command[5] == '\0'
             ) {
                 print("HarbourOS: a tiny operating system built from scratch.");
+            } else if (
+                command[0] == 'v' &&
+                command[1] == 'e' &&
+                command[2] == 'r' &&
+                command[3] == 's' &&
+                command[4] == 'i' &&
+                command[5] == 'o' &&
+                command[6] == 'n' &&
+                command[7] == '\0'
+            ) {
+                print("HarbourOS v0.1");
+                print("\n32-bit x86 kernel");
             } else if (
                 command[0] == 'c' &&
                 command[1] == 'l' &&
@@ -158,6 +171,23 @@ void clear_screen() {
     cursor_pos = 0;
 }
 
+void scroll_screen() {
+    // Move every row up by one.
+    for (int i = 0; i < SCREEN_WIDTH * (SCREEN_HEIGHT - 1); i++) {
+        VGA_MEMORY[i] = VGA_MEMORY[i + SCREEN_WIDTH];
+    }
+
+    // Clear the bottom row.
+    for (int i = SCREEN_WIDTH * (SCREEN_HEIGHT - 1);
+         i < SCREEN_WIDTH * SCREEN_HEIGHT;
+         i++) {
+        VGA_MEMORY[i] = (WHITE_ON_BLACK << 8) | ' ';
+    }
+
+    // Move the cursor up by one row.
+    cursor_pos -= SCREEN_WIDTH;
+}
+
 void print(const char* message) {
     for (int i = 0; message[i] != '\0'; i++) {
         if (message[i] == '\n') {
@@ -171,7 +201,7 @@ void print(const char* message) {
         }
 
         if (cursor_pos >= SCREEN_WIDTH * SCREEN_HEIGHT) {
-            return;
+            scroll_screen();
         }
     }
 }
